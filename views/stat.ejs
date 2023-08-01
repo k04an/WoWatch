@@ -9,41 +9,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.2/chart.umd.js" integrity="sha512-KIq/d78rZMlPa/mMe2W/QkRgg+l0/GAAu4mGBacU0OQyPV/7EPoGQChDb269GigVoPQit5CqbNRFbgTjXHHrQg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <style>
-            * {
-                font-family: 'Nunito';
-            }
-
-            p {
-                margin: 0;
-            }
-
-            .home-content-img {
-                background-image: url(img/home_page_bg.jpg);
-                background-position: 0% 20%;
-                position: absolute;
-                filter: blur(2px) brightness(0.7);
-                left: -5px;
-                right: -5px;
-                top: -5px;
-                bottom: -5px;
-                background-repeat: no-repeat;
-                background-size: cover;
-                animation: home-img-zoomout-anim 1s ease-in-out 1 none;
-            }
-
-            @keyframes home-img-zoomout-anim {
-                from {
-                    transform: scale(1.15);
-                    filter: blur(0px) brightness(1);
-                }
-
-                to {
-                    transform: scale(1);
-                    filter: blur(2px) brightness(0.7);
-                }
-            }
-        </style>
+        <link rel="stylesheet" href="/css/styles.css">
     </head>
     <body class="min-vh-100 d-flex flex-column">
         <!-- Header -->
@@ -60,7 +26,7 @@
             <nav class="navbar mx-5 fs-5 navbar-expand-lg">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a href="#" class="nav-link mx-2">Home</a>
+                        <a href="/" class="nav-link mx-2">Home</a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link mx-2">About</a>
@@ -81,6 +47,7 @@
 
                 <!-- Chart -->
                 <div class="col-10 px-5 py-2">
+                    <h3 class="text-center"><%= serverName %></h3>
                     <canvas id="mainCanvas"></canvas>
                 </div>
             </div>
@@ -93,39 +60,25 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
         <script>
-            flatpickr('#periodPicker', {
+            if ('<%- records.minDate %>' != '' && '<%- records.maxDate %>' != '') {
+                flatpickr('#periodPicker', {
                 enableTime: true,
                 time_24hr: true,
                 mode: 'range',
-                dateFormat: 'd.m.y H:i'
+                dateFormat: 'd.m.y H:i',
+                minDate: new Date('<%- records.minDate %>'),
+                maxDate: new Date('<%- records.maxDate %>'),
             })
-        </script>
-
-        <!-- TEST CHART SCRIPT DELETE! -->
-        <script>
-            const mainChart = document.querySelector('#mainCanvas')
-
-            const numer = 20
-            let labelArr = []
-            let valueArr = []
-
-            for (let i = 1; i <= numer; i++) {
-                labelArr.push(`Lorem, ipsum dolor. ${i}`)
             }
 
-
-            for (let i = 1; i <= numer; i++) {
-                valueArr.push(Math.round(Math.random() * 1000))
-            }
-
-            new Chart(mainChart, {
+            new Chart(document.querySelector('#mainCanvas'), {
                 type: 'line',
                 data: {
-                    labels: labelArr,
+                    labels: JSON.parse('<%- records.labels %>'),
                     datasets: [
                         {
                             label: 'players online',
-                            data: valueArr,
+                            data: JSON.parse('<%= records.values %>'),
                             backgroundColor: 'rgba(13, 110, 253, 0.5)',
                             borderColor: '#0d6efd',
                             fill: true,

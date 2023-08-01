@@ -1,0 +1,33 @@
+* {
+    font-family: 'Nunito';
+}
+
+p {
+    margin: 0;
+}
+
+.home-content-img {
+    background-image: url(/img/home_page_bg.jpg);
+    background-position: 0% 20%;
+    position: absolute;
+    filter: blur(2px) brightness(0.7);
+    left: -5px;
+    right: -5px;
+    top: -5px;
+    bottom: -5px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    animation: home-img-zoomout-anim 1s ease-in-out 1 none;
+}
+
+@keyframes home-img-zoomout-anim {
+    from {
+        transform: scale(1.15);
+        filter: blur(0px) brightness(1);
+    }
+
+    to {
+        transform: scale(1);
+        filter: blur(2px) brightness(0.7);
+    }
+}
