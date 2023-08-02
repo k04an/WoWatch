@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 const models = require('./models')
+const dateFormat = require('dateformat')
+const { parse: dateParse } = require('date-format-parse')
 
 app.use(express.static('public'))
 app.set('view engine', 'ejs')
@@ -12,45 +14,75 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/stat/:serverId', async (req, res) => {
-    // Получаем объект указанного сервера и сопустсвующих записей из БД
+    // Объявляем объект интервала фильтрации, и массивы данных и подписей к ним, для диагрммы
+    let dateRange = {from: '', to: ''}, labelsArr = [], valuesArr = []
+
+    // Получаем данные о сервере по указанному id из БД
     let server = await models.Server.findByPk(req.params.serverId)
-    let records = await models.Record.findAll({ where: { ServerId: server.dataValues.id } })
-    let labelsArr = [], valuesArr = [] // Массивы для данных и подписей диаграммы
-    
+
     // Получаем из БД минимальную и максимальную даты, для ограничения выбора на странице
-    let minDate = await models.Record.findOne({
+    let minDateRecord = await models.Record.findOne({
         where: { ServerId: server.dataValues.id },
         attributes: [
                 [models.sequelize.fn('min', models.sequelize.col('createdAt')), 'minDate']
         ]
     })
 
-    let maxDate = await models.Record.findOne({
+    let maxDateRecord = await models.Record.findOne({
         where: { ServerId: server.dataValues.id },
         attributes: [
                 [models.sequelize.fn('max', models.sequelize.col('createdAt')), 'maxDate']
         ]
     })
 
-    // Заполняем массивы для диаграммы
-    records.forEach((record) => {
-        valuesArr.push(record.dataValues.playerNumber)
-        let date = new Date(record.dataValues.createdAt)
-        labelsArr.push(`${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`)
-    })
+    // Проверяем существуют ли вообще записи, для указанного сервера
+    if (maxDateRecord.dataValues.maxDate != null) {
+        // Получаем интервал дат из get запроса, при наличии.
+        // Также задаем дефолтное значение при отсутствии заданного интервала или при некорректно указаном параметра
+        dateRange = {
+            from: new Date(new Date(maxDateRecord.dataValues.maxDate).setDate(maxDateRecord.dataValues.maxDate.getDate() - 1)),
+            to: maxDateRecord.dataValues.maxDate
+        }
+
+        if (req.query.dateRange != undefined) {
+            if (req.query.dateRange.split(' ').length == 5) {
+                let queryArr = req.query.dateRange.split(' ')
+                dateRange.from = dateParse(`${queryArr[0]} ${queryArr[1]}`, 'DD.MM.YYYY HH:mm')
+                dateRange.to = dateParse(`${queryArr[3]} ${queryArr[4]}`, 'DD.MM.YYYY HH:mm')
+            }
+        }
+
+        // Получаем данные об онлайне относящиеся к указанному серверу
+        let records = await models.Record.findAll({where: {
+            ServerId: server.dataValues.id,
+            createdAt: { [models.Op.between]: [dateRange.from, dateRange.to] }
+        }})
+        
+        // Заполняем массивы для диаграммы
+        records.forEach((record) => {
+            valuesArr.push(record.dataValues.playerNumber)
+            let date = new Date(record.dataValues.createdAt)
+            labelsArr.push(dateFormat(date, 'dd.mm.yyyy" at "HH:MM'))
+        })
+    }
 
     // Рендерим станицу с заданым контекстом
     res.render('stat', {
-        serverName: server.dataValues.name,
+        server: {
+            name: server.dataValues.name,
+            date: dateFormat(Date.now(), 'dd.mm.yyyy'),
+            time: dateFormat(Date.now(), 'HH:MM')
+        },
         records: {
             labels: JSON.stringify(labelsArr),
             values: JSON.stringify(valuesArr),
-            minDate: minDate.dataValues.minDate,
-            maxDate: maxDate.dataValues.maxDate
-        }
+            minDate: minDateRecord.dataValues.minDate,
+            maxDate: maxDateRecord.dataValues.maxDate
+        },
+        currentPeriod: `${dateFormat(dateRange.from, 'dd.mm.yyyy HH:MM')} to ${dateFormat(dateRange.to, 'dd.mm.yyyy HH:MM')}`
     })
 })
 
 app.listen(410, () => {
-    console.log('Web server is up')
+    console.log('Web server is up 💀')
 })

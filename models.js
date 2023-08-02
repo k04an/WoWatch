@@ -38,7 +38,8 @@ let main = async () => {
     module.exports = {
         Server: server,
         Record: record,
-        sequelize: sequelize
+        sequelize: sequelize,
+        Op: Sequelize.Op
     }
 }
 main()
