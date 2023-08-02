@@ -1,0 +1,21 @@
+<header class="container-fluid border-bottom px-0 mx-0 shadow-sm d-flex flex-row" style="z-index: 2;">
+    <!-- Logo -->
+    <div class="col-2 border-end d-flex justify-content-center py-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-eye-fill text-primary" viewBox="0 0 16 16">
+            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+        </svg>
+        <span class="fw-bold fs-4 ms-3">WoWatch</span>
+    </div>
+    <!-- Navigation -->
+    <nav class="navbar mx-5 fs-5 navbar-expand-lg">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="/" class="nav-link mx-2 <% if (activePage == 'home') { %> text-primary <% } %>">Home</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link mx-2 <% if (activePage == 'about') { %> text-primary <% } %>">About</a>
+            </li>
+        </ul>
+    </nav>
+</header>
