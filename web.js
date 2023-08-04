@@ -3,6 +3,7 @@ const app = express()
 const models = require('./models')
 const dateFormat = require('dateformat')
 const { parse: dateParse } = require('date-format-parse')
+const fetch = require('node-fetch')
 
 app.use(express.static('public'))
 app.set('view engine', 'ejs')
@@ -66,6 +67,17 @@ app.get('/stat/:serverId', async (req, res) => {
         })
     }
 
+    // Получаем статус сборщика
+    let collectorStatus
+    try {
+        collectorStatus = await fetch(`http://localhost:${process.env.COLLECTOR_API_PORT == undefined ? 28456 : process.env.COLLECTOR_API_PORT}/status/${server.dataValues.name}`)
+        collectorStatus = await collectorStatus.json()
+    } catch (err) {
+        collectorStatus = {
+            status: 'error'
+        }
+    }
+
     // Рендерим станицу с заданым контекстом
     res.render('stat', {
         server: {
@@ -79,7 +91,8 @@ app.get('/stat/:serverId', async (req, res) => {
             minDate: minDateRecord.dataValues.minDate,
             maxDate: maxDateRecord.dataValues.maxDate
         },
-        currentPeriod: `${dateFormat(dateRange.from, 'dd.mm.yyyy HH:MM')} to ${dateFormat(dateRange.to, 'dd.mm.yyyy HH:MM')}`
+        currentPeriod: `${dateFormat(dateRange.from, 'dd.mm.yyyy HH:MM')} to ${dateFormat(dateRange.to, 'dd.mm.yyyy HH:MM')}`,
+        collectorStatus: collectorStatus
     })
 })
 
