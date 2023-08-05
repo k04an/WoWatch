@@ -4,6 +4,9 @@ const dateFormat = require('dateformat')
 const { parse: dateParse } = require('date-format-parse')
 const fetch = require('node-fetch')
 const models = require('./models')
+const logger = require('./logger')
+
+const moduleName = 'Web server'
 
 app.use(express.static('public'))
 app.set('view engine', 'ejs')
@@ -13,7 +16,9 @@ app.get('/', async (req, res) => {
         res.render('index', {
             servers: await models.Server.findAll()
         })
+        logger(`200 OK - Successfuly rendered home page (request from ${req.ip})`, 'success', moduleName)
     } catch (e) {
+        logger('Database connection failed while rendering home page', 'error', moduleName)
         res.render('exception', {
             msg: 'Database connection failed',
             code: 500
@@ -31,6 +36,7 @@ app.get('/stat/:serverId', async (req, res) => {
     try {
         server = await models.Server.findByPk(req.params.serverId)
     } catch (error) {
+        logger('Database connection failed while rendering stat page', 'error', moduleName)
         res.render('exception', {
             msg: 'Database connection failed',
             code: 500
@@ -104,6 +110,7 @@ app.get('/stat/:serverId', async (req, res) => {
         }
     }
 
+    logger(`200 OK - Successfuly rendered stat page (request from ${req.ip})`, 'success', moduleName)
     // Рендерим станицу с заданым контекстом
     res.render('stat', {
         server: {
@@ -124,12 +131,13 @@ app.get('/stat/:serverId', async (req, res) => {
 
 // Станица 404, при обращении к несуществующей станице
 app.get('*', (req, res) => {
+    logger(`Non-existent page was requested (${req.url}) by (${req.ip})`, 'warning', moduleName)
     res.render('exception', {
         msg: 'Requested page not found',
         code: 404
     })
 })
 
-app.listen(410, () => {
-    console.log('Web server is up 💀')
+app.listen(process.env.WEB_PORT == undefined ? 80 : process.env.WEB_PORT, () => {
+    logger(`Web server is listening port ${process.env.WEB_PORT == undefined ? 80 : process.env.WEB_PORT}`, 'success', moduleName)
 })
