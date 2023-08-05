@@ -1,7 +1,7 @@
 # WoWatch
 An application for tracking players online on World of Warcraft private servers.
 ## Speak russian?
-Файл README доступен на [русском]().
+Файл README доступен на [русском](https://github.com/k04an/WoWatch/blob/master/README_RU.md).
 ## General info
 ### Why?
 So, some of the WoW servers display number of players online thier websites. But the problem is that you can only see current players number. But you can't actually track how the amount of players changed over time.
