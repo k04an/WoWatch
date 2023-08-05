@@ -33,7 +33,7 @@ Install dependencies
 npm install
 ```
 
-And create `.env` file project directory to configure an app. This `.env` options is given below.
+And create `.env` file in app directory to configure an app. The `.env` options is given below.
 
 Run `db-sync.js` script to create database structure.
 ```bash
