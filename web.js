@@ -1,17 +1,24 @@
 const express = require('express')
 const app = express()
-const models = require('./models')
 const dateFormat = require('dateformat')
 const { parse: dateParse } = require('date-format-parse')
 const fetch = require('node-fetch')
+const models = require('./models')
 
 app.use(express.static('public'))
 app.set('view engine', 'ejs')
 
 app.get('/', async (req, res) => {
-    res.render('index', {
-        servers: await models.Server.findAll()
-    })
+    try {
+        res.render('index', {
+            servers: await models.Server.findAll()
+        })
+    } catch (e) {
+        res.render('exception', {
+            msg: 'Database connection failed',
+            code: 500
+        })
+    }
 })
 
 app.get('/stat/:serverId', async (req, res) => {
@@ -19,7 +26,26 @@ app.get('/stat/:serverId', async (req, res) => {
     let dateRange = {from: '', to: ''}, labelsArr = [], valuesArr = []
 
     // Получаем данные о сервере по указанному id из БД
-    let server = await models.Server.findByPk(req.params.serverId)
+    let server
+
+    try {
+        server = await models.Server.findByPk(req.params.serverId)
+    } catch (error) {
+        res.render('exception', {
+            msg: 'Database connection failed',
+            code: 500
+        })
+        return
+    }
+
+    // Если сервер с запрошенным id не найден
+    if (server == null) {
+        res.render('exception', {
+            msg: 'Requested server not found',
+            code: 404
+        })
+        return
+    }
 
     // Получаем из БД минимальную и максимальную даты, для ограничения выбора на странице
     let minDateRecord = await models.Record.findOne({
@@ -93,6 +119,14 @@ app.get('/stat/:serverId', async (req, res) => {
         },
         currentPeriod: `${dateFormat(dateRange.from, 'dd.mm.yyyy HH:MM')} to ${dateFormat(dateRange.to, 'dd.mm.yyyy HH:MM')}`,
         collectorStatus: collectorStatus
+    })
+})
+
+// Станица 404, при обращении к несуществующей станице
+app.get('*', (req, res) => {
+    res.render('exception', {
+        msg: 'Requested page not found',
+        code: 404
     })
 })
 

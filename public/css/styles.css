@@ -31,3 +31,10 @@ p {
         filter: blur(2px) brightness(0.7);
     }
 }
+
+.error-img {
+    background-image: url('/img/error.jpg');
+    background-size: contain;
+    height: 400px;
+    width: 400px;
+}
